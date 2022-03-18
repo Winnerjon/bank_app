@@ -1,6 +1,7 @@
 import 'package:bank_app/models/card_model.dart';
 import 'package:bank_app/services/http_service.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_masked_text2/flutter_masked_text2.dart';
 
 class AddCardList extends StatefulWidget {
   static const String id = "/add_card_page";
@@ -12,41 +13,25 @@ class AddCardList extends StatefulWidget {
 }
 
 class _AddCardListState extends State<AddCardList> {
-  TextEditingController numberController = TextEditingController();
-  TextEditingController cvvController = TextEditingController();
+  TextEditingController numberController = MaskedTextController(mask: "0000 0000 0000 0000");
+  TextEditingController dateController = MaskedTextController(mask: "00 / 00");
+  TextEditingController cvvController = MaskedTextController(mask: "0 0 0");
   TextEditingController nameController = TextEditingController();
 
-  void createCard() {
-    String name = nameController.text.trim().toString();
-    String number = numberController.text.trim().toString();
-    String cvv = cvvController.text.trim().toString();
-
-    if (name != null && number != null && cvv != null) return;
-
-    CardModel newCard = CardModel(
-        id: 0,
-        name: name,
-        cardNumber: number,
-        date: DateTime.now(),
-        cvv: cvv);
-
-    apiCreateUser(newCard);
-  }
+  void addCard() async {
+    String cardName = nameController.text.trim().toString().replaceAll("\'", "");
+    String cardNumber = numberController.text.trim().toString();
+    String cardDate = dateController.text.trim().toString();
+    String cvv = cvvController.text.trim().toString().replaceAll(" ", "");
 
 
-  void apiCreateUser(CardModel user) {
+    if(cardName.isEmpty || cardNumber.isEmpty || cardDate.isEmpty || cvv.isEmpty || cardNumber.length != 19)return;
 
-    HttpService.POST(HttpService.API_CREATE_USER, HttpService.paramsCreate(user)).then((value) {
+    CardModel card = CardModel(cardName: cardName, cardNumber: cardNumber, cardDate: cardDate, cvv: cvv);
+    
+    HttpService.POST(HttpService.API_CREATE, HttpService.bodyCreate(card));
 
-
-      if(value != null) {
-        CardModel user = HttpService.parseCreateUser(value);
-        print(user.id);
-        Navigator.pop(context, true);
-      } else {
-        // error msg
-      }
-    });
+    Navigator.pop(context,true);
   }
 
   @override
@@ -63,6 +48,8 @@ class _AddCardListState extends State<AddCardList> {
               SizedBox(
                 height: 50,
               ),
+
+              /// #appbar
               ListTile(
                 title: Text(
                   "Add your card",
@@ -80,6 +67,8 @@ class _AddCardListState extends State<AddCardList> {
               SizedBox(
                 height: 10,
               ),
+
+              /// #one text
               Padding(
                 padding: const EdgeInsets.all(15),
                 child: Text(
@@ -87,6 +76,8 @@ class _AddCardListState extends State<AddCardList> {
                   style: TextStyle(color: Colors.white, fontSize: 16),
                 ),
               ),
+
+              /// #card number
               Padding(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
@@ -112,20 +103,32 @@ class _AddCardListState extends State<AddCardList> {
                     width: double.infinity - 125,
                     alignment: Alignment.center,
                     child: TextField(
+                      maxLength: 19,
                       controller: numberController,
                       keyboardType: TextInputType.number,
-                      style:
-                          TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+                      textInputAction: TextInputAction.next,
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
                       decoration: InputDecoration(
-                          border: InputBorder.none, hintText: "Card Number"),
+                          counter: const Offstage(),
+                          prefixIconConstraints:
+                          const BoxConstraints(maxHeight: 60, maxWidth: 60),
+                          prefixIcon: Padding(
+                            padding: EdgeInsets.all(10),
+                            child: Image.asset("assets/images/prefix.png"),
+                          ),
+                          border: InputBorder.none,
+                      ),
                     ),
                   ),
                 ),
               ),
+
+              /// #car info
               Container(
                 padding: EdgeInsets.symmetric(horizontal: 15, vertical: 10),
                 child: Row(
                   children: [
+                    /// #card date
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -139,29 +142,22 @@ class _AddCardListState extends State<AddCardList> {
                           ),
                           Container(
                             height: 80,
+                            alignment: Alignment.center,
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(5),
                               color: Colors.white,
                             ),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                    child: Text(
-                                  "06",
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(fontSize: 18),
-                                )),
-                                Container(
-                                  width: 2,
-                                  color: Colors.grey,
-                                ),
-                                Expanded(
-                                    child: Text(
-                                  "22",
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(fontSize: 18),
-                                )),
-                              ],
+                            child: TextField(
+                              maxLength: 7,
+                              controller: dateController,
+                              keyboardType: TextInputType.number,
+                              textInputAction: TextInputAction.next,
+                              style: TextStyle(fontSize: 20,fontWeight: FontWeight.w500),
+                              textAlign: TextAlign.center,
+                              decoration: InputDecoration(
+                                  counter: const Offstage(),
+                                border: InputBorder.none
+                              ),
                             ),
                           ),
                         ],
@@ -170,6 +166,8 @@ class _AddCardListState extends State<AddCardList> {
                     SizedBox(
                       width: 20,
                     ),
+
+                    /// #cvv
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -189,13 +187,15 @@ class _AddCardListState extends State<AddCardList> {
                               color: Colors.white,
                             ),
                             child: TextField(
+                              maxLength: 5,
                               controller: cvvController,
                               keyboardType: TextInputType.number,
+                              textInputAction: TextInputAction.next,
                               style:
-                                  TextStyle(fontSize: 18, color: Colors.black),
+                                  TextStyle(fontSize: 20, color: Colors.black,fontWeight: FontWeight.w500),
                               textAlign: TextAlign.center,
                               decoration: InputDecoration(
-                                hintText: "CVV",
+                                counter: const Offstage(),
                                 border: InputBorder.none,
                               ),
                             ),
@@ -209,6 +209,8 @@ class _AddCardListState extends State<AddCardList> {
               SizedBox(
                 height: 25,
               ),
+
+              /// #card name
               Container(
                 height: 80,
                 width: MediaQuery.of(context).size.width,
@@ -231,6 +233,8 @@ class _AddCardListState extends State<AddCardList> {
               SizedBox(
                 height: 40,
               ),
+
+              /// #card buttom
               Container(
                 margin: EdgeInsets.symmetric(horizontal: 15),
                 child: MaterialButton(
@@ -240,7 +244,7 @@ class _AddCardListState extends State<AddCardList> {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  onPressed: createCard,
+                  onPressed: addCard,
                   child: Text(
                     "Add Card",
                     style: TextStyle(fontSize: 18),

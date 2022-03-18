@@ -1,48 +1,30 @@
-
-
-class UserList {
-  late List<CardModel> userList;
-
-  UserList({required this.userList});
-
-  UserList.fromJson(List json) {
-    userList = json.map((map) => CardModel.fromJson(map)).toList();
-  }
-
-  List toJson() {
-    List list;
-    list = userList.map((user) => user.toJson()).toList();
-    return list;
-  }
-}
-
 class CardModel {
-  late int id;
-  late String name;
+  String? id;
+  late String cardName;
   late String cardNumber;
-  DateTime? date;
+  late String cardDate;
   late String cvv;
 
   CardModel(
-      {required this.id,
-      required this.name,
+      {this.id,
+      required this.cardName,
       required this.cardNumber,
-      required this.date,
+      required this.cardDate,
       required this.cvv});
 
   CardModel.fromJson(Map<String,dynamic> json) {
     id = json["id"];
-    name = json["name"];
+    cardName = json["cardName"];
     cardNumber = json["cardNumber"];
-    date = DateTime.parse(json['date']);
+    cardDate = json['cardDate'];
     cvv = json["cvv"];
   }
 
   Map<String,dynamic> toJson() => {
     "id" : id,
-    "name" : name,
+    "cardName" : cardName,
     "cardNumber" : cardNumber,
-    "date" : date.toString(),
+    "cardDate" : cardDate,
     "cvv" : cvv,
 };
 }
